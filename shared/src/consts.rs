@@ -1,0 +1,1 @@
+pub const TICK_RATE: usize = 60;
