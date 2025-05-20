@@ -18,7 +18,7 @@ fn main() {
                 })
                 .set(WindowPlugin {
                     primary_window: Some(Window {
-                        mode: WindowMode::BorderlessFullscreen(MonitorSelection::Index(0)),
+                        mode: WindowMode::BorderlessFullscreen(MonitorSelection::Primary),
                         focused: true,
                         ..Default::default()
                     }),
@@ -61,17 +61,17 @@ fn startup(mut commands: Commands) {
 
     commands
         .spawn(FirstPersonPawn::default())
-        .with_children(|parent| {
-            parent.spawn((
+        .with_children(|spawner| {
+            spawner.spawn((
                 Camera3d::default(),
                 Camera {
                     is_active: true,
                     ..Default::default()
                 },
-                PerspectiveProjection {
+                Projection::Perspective(PerspectiveProjection {
                     fov: 90.0,
                     ..Default::default()
-                },
+                }),
                 InterpolateRotation::default(),
                 Transform::from_xyz(0.0, 0.5, 0.0),
             ));
@@ -92,7 +92,7 @@ fn control_fly_pawn(command: Res<PlayerCommand>, mut q: Query<&mut FlyPawnComman
 const SENSITIVITY: Vec2 = Vec2::new(0.05, 0.05);
 
 fn cursor_grab(mut q_windows: Query<&mut Window, With<PrimaryWindow>>) {
-    let mut primary_window = q_windows.single_mut();
+    let mut primary_window = q_windows.single_mut().unwrap();
     primary_window.cursor_options.grab_mode = CursorGrabMode::Locked;
     primary_window.cursor_options.visible = false;
 }

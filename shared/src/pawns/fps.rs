@@ -54,10 +54,10 @@ impl FirstPersonPawnCommand {
 #[derive(Debug, Component)]
 #[require(
     FirstPersonPawnCommand,
-    KinematicCharacterController(default_controller),
-    Transform(default_transform),
+    KinematicCharacterController = default_controller(),
+    Transform = default_transform(),
     Velocity,
-    Collider(default_collider),
+    Collider = default_collider(),
     InterpolateTranslation
 )]
 pub struct FirstPersonPawn {
@@ -108,7 +108,7 @@ fn simulate_system(
 ) {
     let delta_seconds = time.delta_secs();
     for (pawn, command, mut velocity, mut controller, children) in q_pawn.iter_mut() {
-        for &child in children.iter() {
+        for child in children.iter() {
             let Some(mut camera) = q_camera.get_mut(child).ok() else {
                 continue;
             };

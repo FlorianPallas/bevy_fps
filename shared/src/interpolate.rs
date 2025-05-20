@@ -1,3 +1,4 @@
+use bevy::ecs::component::Mutable;
 use bevy::prelude::*;
 
 pub struct InterpolatePlugin;
@@ -12,11 +13,11 @@ impl Plugin for InterpolatePlugin {
 }
 
 pub trait InterpolateAppExt {
-    fn register_interpolate<T: Component, M: Component + Interpolate<T>>(&mut self) -> &mut Self;
+    fn register_interpolate<T: Component<Mutability = Mutable>, M: Component + Interpolate<T>>(&mut self) -> &mut Self;
 }
 
 impl InterpolateAppExt for App {
-    fn register_interpolate<T: Component, M: Component + Interpolate<T>>(&mut self) -> &mut Self {
+    fn register_interpolate<T: Component<Mutability = Mutable>, M: Component + Interpolate<T>>(&mut self) -> &mut Self {
         self.add_systems(FixedPreUpdate, switch::<T, M>);
         self.add_systems(FixedPostUpdate, target::<T, M>);
         self.add_systems(Update, interpolate::<T, M>)
@@ -29,7 +30,7 @@ pub struct InterpolateBuffer<T> {
     end: Option<T>,
 }
 
-pub trait Interpolate<T>: Component {
+pub trait Interpolate<T>: Component<Mutability = Mutable> {
     type State;
     fn get_buffer(&self) -> &InterpolateBuffer<Self::State>;
     fn get_buffer_mut(&mut self) -> &mut InterpolateBuffer<Self::State>;
@@ -38,13 +39,13 @@ pub trait Interpolate<T>: Component {
     fn interpolate(start: &Self::State, end: &Self::State, weight: f32) -> Self::State;
 }
 
-pub fn target<T: Component, M: Interpolate<T>>(mut q: Query<(&T, &mut M)>) {
+pub fn target<T: Component<Mutability = Mutable>, M: Interpolate<T>>(mut q: Query<(&T, &mut M)>) {
     for (target, mut marker) in q.iter_mut() {
         marker.get_buffer_mut().end = Some(M::get_state(target));
     }
 }
 
-pub fn interpolate<T: Component, M: Interpolate<T>>(
+pub fn interpolate<T: Component<Mutability = Mutable>, M: Interpolate<T>>(
     mut q: Query<(&mut T, &M)>,
     time: Res<Time<Fixed>>,
 ) {
@@ -57,7 +58,7 @@ pub fn interpolate<T: Component, M: Interpolate<T>>(
     }
 }
 
-pub fn switch<T: Component, M: Interpolate<T>>(mut q: Query<(&mut T, &mut M)>) {
+pub fn switch<T: Component<Mutability = Mutable>, M: Interpolate<T>>(mut q: Query<(&mut T, &mut M)>) {
     for (mut target, mut buffer) in q.iter_mut() {
         let buffer = buffer.get_buffer_mut();
         if let Some(to) = buffer.end.take() {
