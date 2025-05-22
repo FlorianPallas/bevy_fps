@@ -5,6 +5,7 @@ pub mod interpolate;
 pub mod pawns;
 pub mod plugins;
 pub mod scenes;
+pub mod session;
 
 #[derive(Debug, Clone, Default)]
 pub struct Command {

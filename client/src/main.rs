@@ -1,36 +1,33 @@
+use crate::command::CommandPlugin;
+use crate::net::NetPlugin;
 use bevy::input::mouse::MouseMotion;
-use bevy::log::{Level, LogPlugin};
 use bevy::prelude::*;
 use bevy::window::{CursorGrabMode, PrimaryWindow, WindowMode};
-use bevy_rapier3d::prelude::TimestepMode;
 use shared::interpolate::InterpolateRotation;
 use shared::pawns::fly::{FlyPawn, FlyPawnCommand};
 use shared::pawns::fps::{FirstPersonPawn, FirstPersonPawnCommand};
 use shared::plugins::SharedPlugins;
 
+mod command;
+mod net;
+
 fn main() {
     App::new()
-        .add_plugins(
-            DefaultPlugins
-                .set(LogPlugin {
-                    level: Level::DEBUG,
-                    ..Default::default()
-                })
-                .set(WindowPlugin {
-                    primary_window: Some(Window {
-                        mode: WindowMode::BorderlessFullscreen(MonitorSelection::Primary),
-                        focused: true,
-                        ..Default::default()
-                    }),
-                    ..Default::default()
-                }),
-        )
-        .insert_resource(TimestepMode::Fixed {
-            dt: 1.0 / shared::consts::TICK_RATE as f32,
-            substeps: 1,
-        })
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
+            primary_window: Some(Window {
+                mode: WindowMode::BorderlessFullscreen(MonitorSelection::Primary),
+                focused: true,
+                ..Default::default()
+            }),
+            ..Default::default()
+        }))
         .add_plugins(SharedPlugins)
-        .add_systems(Startup, (startup, cursor_grab))
+        .add_plugins(CommandPlugin)
+        .add_plugins(NetPlugin)
+        .add_systems(
+            Startup,
+            (shared::scenes::example::setup, startup, cursor_grab),
+        )
         .add_systems(Update, (handle_mouse_motion, handle_button_inputs))
         .add_systems(
             FixedPreUpdate,

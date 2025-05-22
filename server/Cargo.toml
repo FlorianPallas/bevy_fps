@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-bevy.workspace = true
-bevy_rapier3d.workspace = true
 shared = { path = "../shared" }
+bevy.workspace = true
+bincode.workspace = true
+serde.workspace = true
+bevy_quinnet = { version = "0.17.0", default-features = false, features = ["server", "shared-client-id"] }
