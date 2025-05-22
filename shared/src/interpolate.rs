@@ -13,11 +13,15 @@ impl Plugin for InterpolatePlugin {
 }
 
 pub trait InterpolateAppExt {
-    fn register_interpolate<T: Component<Mutability = Mutable>, M: Component + Interpolate<T>>(&mut self) -> &mut Self;
+    fn register_interpolate<T: Component<Mutability = Mutable>, M: Component + Interpolate<T>>(
+        &mut self,
+    ) -> &mut Self;
 }
 
 impl InterpolateAppExt for App {
-    fn register_interpolate<T: Component<Mutability = Mutable>, M: Component + Interpolate<T>>(&mut self) -> &mut Self {
+    fn register_interpolate<T: Component<Mutability = Mutable>, M: Component + Interpolate<T>>(
+        &mut self,
+    ) -> &mut Self {
         self.add_systems(FixedPreUpdate, switch::<T, M>);
         self.add_systems(FixedPostUpdate, target::<T, M>);
         self.add_systems(Update, interpolate::<T, M>)
@@ -58,7 +62,9 @@ pub fn interpolate<T: Component<Mutability = Mutable>, M: Interpolate<T>>(
     }
 }
 
-pub fn switch<T: Component<Mutability = Mutable>, M: Interpolate<T>>(mut q: Query<(&mut T, &mut M)>) {
+pub fn switch<T: Component<Mutability = Mutable>, M: Interpolate<T>>(
+    mut q: Query<(&mut T, &mut M)>,
+) {
     for (mut target, mut buffer) in q.iter_mut() {
         let buffer = buffer.get_buffer_mut();
         if let Some(to) = buffer.end.take() {
