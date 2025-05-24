@@ -9,6 +9,12 @@ use shared::consts::GAME_PORT;
 
 pub struct NetPlugin;
 
+#[derive(Component, Deref)]
+#[component(immutable)]
+struct Client {
+    pub id: u64,
+}
+
 impl Plugin for NetPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(QuinnetServerPlugin::default());
@@ -32,12 +38,20 @@ fn start_listening(mut server: ResMut<QuinnetServer>) {
 fn handle_server_events(
     mut connection_events: EventReader<ConnectionEvent>,
     mut connection_lost_events: EventReader<ConnectionLostEvent>,
+    mut commands: Commands,
+    clients: Query<(Entity, &Client)>,
 ) {
-    for ev in connection_events.read() {
-        info!("Client {} connected", ev.id);
+    for &ConnectionEvent { id } in connection_events.read() {
+        info!("Client {id} connected");
+        commands.spawn(Client { id });
     }
 
-    for ev in connection_lost_events.read() {
-        info!("Client {} lost connection", ev.id);
+    for &ConnectionLostEvent { id } in connection_lost_events.read() {
+        info!("Client {id} disconnected");
+        let Some((entity, _)) = clients.into_iter().find(|&(_, c)| c.id == id) else {
+            warn!("Could not find entity for client {id}");
+            return;
+        };
+        commands.entity(entity).despawn();
     }
 }
